@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 # import modules
 import serial
 import sys
@@ -8,6 +6,7 @@ import warnings
 from math import pi, isnan
 import numpy as np
 import libnmea_navsat_driver.driver
+from Groundstation import Groundstation
 
 
 class gpslogger:
@@ -38,6 +37,20 @@ class gpslogger:
         self.wp_start = [40.267641059243935, -111.63587333726502]
         self.wp_finish = [40.26678857, -111.63552403]
         self.wp_tolerance = 10.0  # m
+        self.init_pts = 15 # points that achieves a gps fix (suggest 100)
+
+        self.lat_init = np.zeros((self.init_pts))
+        self.lon_init = np.zeros((self.init_pts))
+        self.alt_init = np.zeros((self.init_pts))
+        self.lat0 = 0.0
+        self.lon0 = 0.0
+        self.alt0 = 0.0
+
+        self.lat_history = []
+        self.lon_history = []
+        self.alt_history = []
+
+        self.groundstation = Groundstation()
 
 
     def usrfun(self, time, fix, NumSat, lat, lon, alt, speed, ground_course, covariance):
@@ -45,29 +58,60 @@ class gpslogger:
         FOR YOU: Define any logic you need for processing GPS data here.
         This function is called every time a new GPS packet is received.
         """
+        if fix == True:
+            print(self.counter)
+            # Initial GPS initialization
+            if self.counter < self.init_pts:
+                self.lat_init[self.counter] = lat
+                self.lon_init[self.counter] = lon
+                self.alt_init[self.counter] = alt
 
-        # ---- print GPS state -----
-        if self.counter%10 == 0:  # reprint the titles every 10 iterations
-            print("time,fix,NumSat,lat,lon,alt,speed,ground_course,covariance")
+            elif self.counter == self.init_pts:
+                self.lat0 =  np.mean(self.lat_init)
+                self.lon0 = np.mean(self.lon_init)
+                self.alt0 = np.mean(self.alt_init)
+                print("GPS Initialization complete")
+                print(self.lat0,self.lon0,self.alt0)
 
-        print(time,fix,NumSat,lat,lon,alt,speed,ground_course,covariance)
+            else:
+                self.altitude_warning(alt)
+                self.lat_history.append(lat)
+                self.lon_history.append(lon)
+                self.alt_history.append(alt)
+                print("Current altitude =",alt-self.alt0)
+            '''
+            # ---- print GPS state -----
+            if self.counter%10 == 0:  # reprint the titles every 10 iterations
+                print("time,fix,NumSat,lat,lon,alt,speed,ground_course,covariance")
+
+            print(time,fix,NumSat,lat,lon,alt,speed,ground_course,covariance)
 
 
-        # ---- boundary checks ----
+            # ---- boundary checks ----
 
-        ell = self.ellipse([lat, lon])
-        if ell > 1.0:
-            print("ALERT!  Out of bounds! Return immediately!")
-            return
-        elif ell > 0.7:
-            print("WARNING!  Close to boundary! Ready pilot.")
-            return
-
-        # --- update counter ---
-        self.counter += 1
+            ell = self.ellipse([lat, lon])
+            if ell > 1.0:
+                print("ALERT!  Out of bounds! Return immediately!")
+                return
+            elif ell > 0.7:
+                print("WARNING!  Close to boundary! Ready pilot.")
+                return
+            '''
+            # --- update counter ---
+            self.counter += 1
+        else:
+            print("No GPS Fix")
 
 
  # -------- Don't change anything below this line -----------
+
+    def altitude_warning(self,alt):
+        if alt - self.alt0 < 15.0:
+            print("Warning. Approaching Ground Climb Immediately")
+        elif alt - self.alt0 > 91.44:
+            print("Warning altitude over 300ft. Please descend")
+        elif alt - self.alt0 > 122.0:
+            print("Above Altitude Ceiling Descend Immediately!")
 
     def distance(self, pt1, pt2):
         """pt = [lat, long]"""
