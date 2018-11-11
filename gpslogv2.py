@@ -11,10 +11,15 @@ from pyqtgraph.Qt import QtCore, QtGui
 
 class Gpslogger():
 
-    def __init__(self):
+    def __init__(self, helloFunc):
 
         self.initializevariables()
-        self.startgpslog()
+        #self.startgpslog()
+        self.run = True
+        self.hello = helloFunc
+
+    def stop(self):
+        self.run = False
 
 
 # -------- Don't change anything above this line -----------
@@ -134,14 +139,15 @@ class Gpslogger():
         return ell
 
 
-    def startgpslog(self):
+    def startgpslog(self,port):
+        self.hello('derek')
 
         # parse arguments
-        if len(sys.argv) < 2:
+        if len(port) < 2:
             print('Please specify the port (e.g. python gpslog.py /dev/ttyUSB0)')
             sys.exit(0)
         else:
-            serial_port = sys.argv[1]
+            serial_port = port
 
         # set up port reading
         GPS = serial.Serial(port=serial_port, baudrate=57600, timeout=2)
@@ -156,7 +162,7 @@ class Gpslogger():
         t0 = time.time()
 
         try:
-            while True:
+            while self.run:
                 data = GPS.readline().strip()
                 try:
                     out = driver.add_sentence(data.decode(), time.time()-t0)
@@ -174,4 +180,4 @@ class Gpslogger():
 
 
 if __name__ == '__main__':
-    Gpslogger()
+    gpslogger()
