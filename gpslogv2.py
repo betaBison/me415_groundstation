@@ -94,10 +94,10 @@ class Gpslogger():
 
             else:
                 self.altitude_warning(alt)
-                self.time = time-self.time0
                 self.lat = lat
                 self.lon = lon
                 self.alt = alt-self.alt0
+                self.time = time-self.time0
                 self.time_history.append(time-self.time0)
                 self.lat_history.append(lat)
                 self.lon_history.append(lon)
