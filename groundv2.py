@@ -6,112 +6,73 @@ from gpslogv2 import Gpslogger
 import threading
 
 win = pg.GraphicsWindow()
-win.setWindowTitle('pyqtgraph example: Scrolling Plots')
+pg.setConfigOption('foreground', 'k')
+win.setBackground('w')
+setBoundWarn = 0
+
+win.setWindowTitle('Dewey and the Aeronauts Official Groundstation')
+
+# FPV plot
+p1 = win.addPlot(row=1,col=1,rowspan=6,title="FPV plot")
 
 
-# 1) Simplest approach -- update data in the array such that plot appears to scroll
-#    In these examples, the array size is fixed.
-p1 = win.addPlot()
-p2 = win.addPlot()
-data1 = np.random.normal(size=300)
-curve1 = p1.plot(data1)
-curve2 = p2.plot(data1)
-ptr1 = 0
-def update1():
-    global data1, curve1, ptr1
-    data1[:-1] = data1[1:]  # shift data in the array one sample left
-                            # (see also: np.roll)
-    data1[-1] = np.random.normal()
-    curve1.setData(data1)
+# Ground Track Plot
+p2 = win.addPlot(row=1,col=3,rowspan=2,title="Ground Track Plot")
+g2x = [40.26764106, 40.26678857,]
+g2y = [-111.63587334,-111.63552403]
+g2 = p2.plot(x=g2x,y=g2y,pen =None,symbol='o', symbolPen=None, symbolSize=10, symbolBrush=(255,0,0,255))
 
-    ptr1 += 1
-    curve2.setData(data1)
-    curve2.setPos(ptr1, 0)
+# Elevation Profile
+p3 = win.addPlot(row=3,col=3,rowspan=2,title="Elevation Profile")
+g3 = p3.plot(pen=(0,255,0))
+
+# 3D Trajectory
+p4 = win.addPlot(row=5,col=3,rowspan=2,title="3D Trajectory")
 
 
-# 2) Allow data to accumulate. In these examples, the array doubles in length
-#    whenever it is full.
-win.nextRow()
-p3 = win.addPlot()
-p4 = win.addPlot()
-# Use automatic downsampling and clipping to reduce the drawing load
-p3.setDownsampling(mode='peak')
-p4.setDownsampling(mode='peak')
-p3.setClipToView(True)
-p4.setClipToView(True)
-p3.setRange(xRange=[-100, 0])
-p3.setLimits(xMax=0)
-curve3 = p3.plot()
-curve4 = p4.plot()
 
-data3 = np.empty(100)
-ptr3 = 0
-
-def update2():
-    global data3, ptr3
-    data3[ptr3] = np.random.normal()
-    ptr3 += 1
-    if ptr3 >= data3.shape[0]:
-        tmp = data3
-        data3 = np.empty(data3.shape[0] * 2)
-        data3[:tmp.shape[0]] = tmp
-    curve3.setData(data3[:ptr3])
-    curve3.setPos(-ptr3, 0)
-    curve4.setData(data3[:ptr3])
-
-
-# 3) Plot in chunks, adding one new plot curve for every 100 samples
-chunkSize = 100
-# Remove chunks after we have 10
-maxChunks = 10
-startTime = pg.ptime.time()
-win.nextRow()
-p5 = win.addPlot(colspan=2)
-p5.setLabel('bottom', 'Time', 's')
-p5.setXRange(-10, 0)
-curves = []
-data5 = np.empty((chunkSize+1,2))
-ptr5 = 0
-
-def update3():
-    global p5, data5, ptr5, curves
-    now = pg.ptime.time()
-    for c in curves:
-        c.setPos(-(now-startTime), 0)
-
-    i = ptr5 % chunkSize
-    if i == 0:
-        curve = p5.plot()
-        curves.append(curve)
-        last = data5[-1]
-        data5 = np.empty((chunkSize+1,2))
-        data5[0] = last
-        while len(curves) > maxChunks:
-            c = curves.pop(0)
-            p5.removeItem(c)
-    else:
-        curve = curves[-1]
-    data5[i+1,0] = now - startTime
-    data5[i+1,1] = np.random.normal()
-    curve.setData(x=data5[:i+2, 0], y=data5[:i+2, 1])
-    ptr5 += 1
-
-def hello(name):
-    print('hello {}'.format(name))
-
-gps = Gpslogger(hello)
-
-gpsthread = threading.Thread(target=gps.startgpslog, name="_proc", args=['/dev/ttyUSB0'])
-gpsthread.start()
+# Warnings
+l1 = win.addLabel("Altitude Warning:",row=1,col=2)
+l2 = win.addLabel("None",row=2,col=2)
+l3 = win.addLabel("Boundary Warning:",row=3,col=2)
+l4 = win.addLabel("None",row=4,col=2)
 
 # update all plots
-def update():
-    update1()
-    update2()
-    update3()
+def updateGraphs():
+    global p1,p2,p3,p4
+    #p2.setData(gps.lat_history,gps.lon_history)
+    #p3.setData(gps.time_history,gps.alt_history)
+    pass
+    #p4.setData(x=gps.lat_history,y=gps.lon_history,z=gps.alt_history)
+    #update1()
+    #update2()
+    #update3()
+
+def updateAltWarn(words):
+    global l2
+    l2.setText(words)
+
+def updateBoundWarn(setBoundWarn):
+    global l4
+    if setBoundWarn == 1:
+        l4.setText("Out of bounds! Return!")
+    if setBoundWarn == 2:
+        l4.setText("Close to boundary!")
+    else:
+        pass
+
+
+
+def updateGui():
+    updateBoundWarn(gps.setBoundWarn)
+
 timer = pg.QtCore.QTimer()
-timer.timeout.connect(update)
+timer.timeout.connect(updateGui)
 timer.start(50)
+
+gps = Gpslogger(updateGraphs,setBoundWarn)
+gpsthread = threading.Thread(target=gps.startgpslog, name="_proc", args=['/dev/ttyUSB0'])
+gpsthread.start()
 
 
 

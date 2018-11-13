@@ -11,12 +11,14 @@ from pyqtgraph.Qt import QtCore, QtGui
 
 class Gpslogger():
 
-    def __init__(self, helloFunc):
+    def __init__(self, updateGraphs,setBoundWarn):
 
         self.initializevariables()
         #self.startgpslog()
         self.run = True
-        self.hello = helloFunc
+        self.updateGraphs = updateGraphs
+        #self.updateAltWarn = updateAltWarn
+        self.setBoundWarn = setBoundWarn
 
     def stop(self):
         self.run = False
@@ -47,10 +49,12 @@ class Gpslogger():
         self.lat_init = np.zeros((self.init_pts))
         self.lon_init = np.zeros((self.init_pts))
         self.alt_init = np.zeros((self.init_pts))
+        self.time0 = 0.0
         self.lat0 = 0.0
         self.lon0 = 0.0
         self.alt0 = 0.0
 
+        self.time_history = []
         self.lat_history = []
         self.lon_history = []
         self.alt_history = []
@@ -75,14 +79,19 @@ class Gpslogger():
                 self.alt0 = np.mean(self.alt_init)
                 print("GPS Initialization complete")
                 print(self.lat0,self.lon0,self.alt0)
+                self.time0 = time
 
             else:
                 self.altitude_warning(alt)
+                self.time_history.append(time-self.time0)
                 self.lat_history.append(lat)
                 self.lon_history.append(lon)
                 self.alt_history.append(alt)
                 print("Current altitude =",alt-self.alt0)
-            '''
+                self.updateGraphs()
+
+
+
             # ---- print GPS state -----
             if self.counter%10 == 0:  # reprint the titles every 10 iterations
                 print("time,fix,NumSat,lat,lon,alt,speed,ground_course,covariance")
@@ -95,25 +104,29 @@ class Gpslogger():
             ell = self.ellipse([lat, lon])
             if ell > 1.0:
                 print("ALERT!  Out of bounds! Return immediately!")
-                return
+                self.setBoundWarn = 1
             elif ell > 0.7:
                 print("WARNING!  Close to boundary! Ready pilot.")
-                return
-            '''
+                self.setBoundWarn = 2
+
             # --- update counter ---
             self.counter += 1
         else:
             print("No GPS Fix")
 
 
+
  # -------- Don't change anything below this line -----------
 
     def altitude_warning(self,alt):
         if alt - self.alt0 < 15.0:
+            #self.updateAltWarn("Warning. Approaching Ground Climb Immediately")
             print("Warning. Approaching Ground Climb Immediately")
         elif alt - self.alt0 > 91.44:
+            #self.updateAltWarn("Warning altitude over 300ft. Please descend")
             print("Warning altitude over 300ft. Please descend")
         elif alt - self.alt0 > 122.0:
+            #self.updateAltWarn("Above Altitude Ceiling Descend Immediately!")
             print("Above Altitude Ceiling Descend Immediately!")
 
     def distance(self, pt1, pt2):
@@ -140,7 +153,6 @@ class Gpslogger():
 
 
     def startgpslog(self,port):
-        self.hello('derek')
 
         # parse arguments
         if len(port) < 2:
