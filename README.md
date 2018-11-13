@@ -1,3 +1,13 @@
+
+
+
+# JUST RUN THE groundv2.py file
+
+
+
+
+
+
 # 415gps
 
 The script gpslog.py reads serial GPS data (NMEA messages) and writes the data to a time-stamped csv file.
