@@ -18,8 +18,8 @@ p1 = win.addPlot(row=1,col=1,rowspan=6,title="FPV plot")
 
 # Ground Track Plot
 p2 = win.addPlot(row=1,col=3,rowspan=2,title="Ground Track Plot")
-g2x = [40.26764106, 40.26678857,]
-g2y = [-111.63587334,-111.63552403]
+g2x = [-111.63587334,-111.63552403]
+g2y = [40.26764106, 40.26678857]
 g2 = p2.plot(x=g2x,y=g2y,pen =None,symbol='o', symbolPen=None, symbolSize=10, symbolBrush=(255,0,0,255))
 
 # Elevation Profile
@@ -38,11 +38,20 @@ l3 = win.addLabel("Boundary Warning:",row=3,col=2)
 l4 = win.addLabel("None",row=4,col=2)
 
 # update all plots
+first_time = True
 def updateGraphs():
-    global p1,p2,p3,p4
+    global p1,p2,p3,p4, first_time
+    global lat_p, lon_p
+    if gps.initialized == True and gps.lat0 != gps.lat:
+        if first_time == True:
+            p2.plot(x=[gps.lon0,gps.lon],y=[gps.lat0,gps.lat],pen=(0,0,255))
+            first_time = False
+        else:
+            p2.plot(x=[lon_p,gps.lon],y=[lat_p,gps.lat],pen=(0,0,255))
+        lat_p = gps.lat
+        lon_p = gps.lon
     #p2.setData(gps.lat_history,gps.lon_history)
     #p3.setData(gps.time_history,gps.alt_history)
-    pass
     #p4.setData(x=gps.lat_history,y=gps.lon_history,z=gps.alt_history)
     #update1()
     #update2()
@@ -65,6 +74,7 @@ def updateBoundWarn(setBoundWarn):
 
 def updateGui():
     updateBoundWarn(gps.setBoundWarn)
+    updateGraphs()
 
 timer = pg.QtCore.QTimer()
 timer.timeout.connect(updateGui)

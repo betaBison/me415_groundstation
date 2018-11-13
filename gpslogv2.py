@@ -6,7 +6,6 @@ import warnings
 from math import pi, isnan
 import numpy as np
 import libnmea_navsat_driver.driver
-from Groundstation import Groundstation
 from pyqtgraph.Qt import QtCore, QtGui
 
 class Gpslogger():
@@ -54,6 +53,13 @@ class Gpslogger():
         self.lon0 = 0.0
         self.alt0 = 0.0
 
+        self.initialized = False
+
+        self.time = 0.0
+        self.lat = 0.0
+        self.lon = 0.0
+        self.alt = 0.0
+
         self.time_history = []
         self.lat_history = []
         self.lon_history = []
@@ -80,15 +86,24 @@ class Gpslogger():
                 print("GPS Initialization complete")
                 print(self.lat0,self.lon0,self.alt0)
                 self.time0 = time
+                self.time = time-self.time0
+                self.lat = lat
+                self.lon = lon
+                self.alt = alt-self.alt0
+                self.initialized = True
 
             else:
                 self.altitude_warning(alt)
+                self.time = time-self.time0
+                self.lat = lat
+                self.lon = lon
+                self.alt = alt-self.alt0
                 self.time_history.append(time-self.time0)
                 self.lat_history.append(lat)
                 self.lon_history.append(lon)
                 self.alt_history.append(alt)
                 print("Current altitude =",alt-self.alt0)
-                self.updateGraphs()
+                #self.updateGraphs()
 
 
 
