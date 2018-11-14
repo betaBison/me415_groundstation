@@ -85,11 +85,11 @@ class Gpslogger():
                 self.alt0 = np.mean(self.alt_init)
                 print("GPS Initialization complete")
                 print(self.lat0,self.lon0,self.alt0)
-                self.time0 = time
-                self.time = time-self.time0
                 self.lat = lat
                 self.lon = lon
                 self.alt = alt-self.alt0
+                self.time0 = time
+                self.time = time-self.time0
                 self.initialized = True
 
             else:
