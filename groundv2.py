@@ -61,6 +61,10 @@ l5 = win.addLabel("0.0",row=2,col=2)
 l2 = win.addLabel("None",row=3,col=2)
 l3 = win.addLabel("Boundary Warning:",row=4,col=2)
 l4 = win.addLabel("None",row=5,col=2)
+l6 = win.addLabel("Distance At Altitude",row=6,col=2)
+l7 = win.addLabel("0.0",row=7,col=2)
+l8 = win.addLabel(" ",row=8,col=2)
+l9 = win.addLabel(" ",row=9,col=2)
 
 
 # update all plots

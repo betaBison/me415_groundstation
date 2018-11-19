@@ -3,7 +3,7 @@ import serial
 import sys
 import time
 import warnings
-from math import pi, isnan
+from math import pi, isnan, sin, cos, asin, radians, sqrt
 import numpy as np
 import libnmea_navsat_driver.driver
 from pyqtgraph.Qt import QtCore, QtGui
@@ -21,6 +21,7 @@ class Gpslogger():
 
     def stop(self):
         self.run = False
+        csvfile.close()
 
 
 # -------- Don't change anything above this line -----------
@@ -133,6 +134,18 @@ class Gpslogger():
 
 
  # -------- Don't change anything below this line -----------
+
+    def distBetweenGPS(self,lat1,lon1,lat2,lon2):
+        R = 6372.8 # Earth radius in kilometers
+        dLat = radians(lat2 - lat1)
+        dLon = radians(lon2 - lon1)
+        lat1 = radians(lat1)
+        lat2 = radians(lat2)
+        a = sin(dLat/2)**2 + cos(lat1)*cos(lat2)*sin(dLon/2)**2
+        c = 2*asin(sqrt(a))
+        distance= R*c*1000
+        return distance
+
 
     def altitude_warning(self,alt):
         if alt - self.alt0 < 15.0:
