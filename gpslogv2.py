@@ -10,14 +10,14 @@ from pyqtgraph.Qt import QtCore, QtGui
 
 class Gpslogger():
 
-    def __init__(self, updateGraphs,setBoundWarn):
+    def __init__(self, updateGraphs):
 
         self.initializevariables()
         #self.startgpslog()
         self.run = True
         self.updateGraphs = updateGraphs
-        #self.updateAltWarn = updateAltWarn
-        self.setBoundWarn = setBoundWarn
+        self.setAltWarn = 0
+        self.setBoundWarn = 0
 
     def stop(self):
         self.run = False
@@ -123,6 +123,8 @@ class Gpslogger():
             elif ell > 0.7:
                 print("WARNING!  Close to boundary! Ready pilot.")
                 self.setBoundWarn = 2
+            else:
+                self.setBoundWarn = 0
 
             # --- update counter ---
             self.counter += 1
@@ -130,19 +132,20 @@ class Gpslogger():
             print("No GPS Fix")
 
 
-
  # -------- Don't change anything below this line -----------
 
     def altitude_warning(self,alt):
         if alt - self.alt0 < 15.0:
-            #self.updateAltWarn("Warning. Approaching Ground Climb Immediately")
+            self.setAltWarn = 1
             print("Warning. Approaching Ground Climb Immediately")
         elif alt - self.alt0 > 91.44:
-            #self.updateAltWarn("Warning altitude over 300ft. Please descend")
+            self.setAltWarn = 2
             print("Warning altitude over 300ft. Please descend")
         elif alt - self.alt0 > 122.0:
-            #self.updateAltWarn("Above Altitude Ceiling Descend Immediately!")
+            self.setAltWarn = 3
             print("Above Altitude Ceiling Descend Immediately!")
+        else:
+            self.setAltWarn = 0
 
     def distance(self, pt1, pt2):
         """pt = [lat, long]"""

@@ -6,6 +6,10 @@ from gpslogv2 import Gpslogger
 import threading
 import pyqtgraph.opengl as gl
 
+port = '/dev/ttyUSB0'
+
+
+
 win = pg.GraphicsWindow()
 pg.setConfigOption('foreground', 'k')
 win.setBackground('w')
@@ -41,7 +45,7 @@ p2.setLabel('bottom',"Longitude")
 p3 = win.addPlot(row=4,col=3,rowspan=3,title="Elevation Profile")
 g3 = p3.plot(pen=(0,255,0))
 p3.setLabel('left',"Altitude",units='m')
-p3.setLabel('bottom',"Time",units='s')
+p3.setLabel('bottom',"Distance",units='m')
 
 # 3D Trajectory
 p4 = win.addPlot(row=7,col=3,rowspan=3,title="3D Trajectory")
@@ -107,12 +111,23 @@ def updateGraphs():
     #update2()
     #update3()
 
-def updateAltWarn(words):
+def updateAltWarn(setAltWarn):
     global l2
-    l2.setText(words)
+    if setAltWarn == 0:
+        l2.setText("None")
+    if setAltWarn == 1:
+        l2.setText("Approaching Ground, Climb!")
+    if setAltWarn == 2:
+        l2.setText("Above 300ft, Descend!")
+    if setAltWarn == 3:
+        l2.setText("Above 400ft, Descend!")
+    else:
+        pass
 
 def updateBoundWarn(setBoundWarn):
     global l4
+    if setBoundWarn == 0:
+        l4.setText("None")
     if setBoundWarn == 1:
         l4.setText("Out of bounds! Return!")
     if setBoundWarn == 2:
@@ -124,14 +139,15 @@ def updateBoundWarn(setBoundWarn):
 
 def updateGui():
     updateBoundWarn(gps.setBoundWarn)
+    updateAltWarn(gps.setAltWarn)
     updateGraphs()
 
 timer = pg.QtCore.QTimer()
 timer.timeout.connect(updateGui)
 timer.start(50)
 
-gps = Gpslogger(updateGraphs,setBoundWarn)
-gpsthread = threading.Thread(target=gps.startgpslog, name="_proc", args=['/dev/ttyUSB0'])
+gps = Gpslogger(updateGraphs)
+gpsthread = threading.Thread(target=gps.startgpslog, name="_proc", args=[port])
 gpsthread.start()
 
 
