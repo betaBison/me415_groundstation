@@ -139,11 +139,29 @@ def updateBoundWarn(setBoundWarn):
     else:
         pass
 
+def updateWpWarn(WpWarn):
+    global l8
+    if WpWarn == 0:
+        l6.setText("Distance at Alt")
+        l7.setText(gps.distance_alt)
+    if WpWarn == 1:
+        l6.setText("Head to Waypoint 1")
+        l7.setText(" ")
+    if WpWarn == 2:
+        l6.setText("WP 1 reached. Go to 2")
+    if WpWarn == 3:
+        l6.setText("Wp 2 reached. Go home")
 
+def updateBearing(current,desired):
+    global l9
+    text = "Current: %3.1f Desired: %3.1f" % (current,desired)
+    l9.setText(text)
 
 def updateGui():
     updateBoundWarn(gps.setBoundWarn)
     updateAltWarn(gps.setAltWarn)
+    updateWpWarn(gps.waypoint)
+    updateBearing(gps.currentBearing,gps.desiredBearing)
     updateGraphs()
 
 timer = pg.QtCore.QTimer()

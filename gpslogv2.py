@@ -3,7 +3,8 @@ import serial
 import sys
 import time
 import warnings
-from math import pi, isnan, sin, cos, asin, radians, sqrt
+from math import pi, isnan
+from math import sin, cos, asin, radians, sqrt, atan2
 import numpy as np
 import libnmea_navsat_driver.driver
 from pyqtgraph.Qt import QtCore, QtGui
@@ -18,6 +19,7 @@ class Gpslogger():
         self.updateGraphs = updateGraphs
         self.setAltWarn = 0
         self.setBoundWarn = 0
+        self.waypoint = 0
 
     def stop(self):
         self.run = False
@@ -61,6 +63,13 @@ class Gpslogger():
         self.lon = 0.0
         self.alt = 0.0
 
+        self.wp_lon = [-111.63587334,-111.63552403]
+        self.wp_lat = [40.26764106, 40.26678857]
+        self.desiredBearing = 0.0
+        self.currentBearing = 0.0
+        self.distance = 0.0
+        self.distance_alt = 0.0
+
         self.time_history = []
         self.lat_history = []
         self.lon_history = []
@@ -94,6 +103,32 @@ class Gpslogger():
                 self.initialized = True
 
             else:
+                self.currentBearing=currentBearingIndic(self.lat,self.lon,lat,lon)
+                new_distance = distBetweenGPS(self.lat,self.lon,lat,lon)
+                self.distance += new_distance
+
+                if self.waypoint == 0:
+                    distAtAlt(alt,new_distance)
+                if self.waypoint == 1:
+                    latWaypoint=self.wp_lat[0]
+                    lonWaypoint=self.wp_lon[0]
+                    if distBetweenGPS(lat,lon,latWaypoint,lonWaypoint) < 10.0:
+                        print("You have reached waypoint 1! Head to waypoint 2")
+                        self.waypoint=2
+                elif self.waypoint == 2:
+                    latWaypoint=self.wp_lat[1]
+                    lonWaypoint=self.wp_lon[1]
+                    if distBetweenGPS(lat,lon, latWaypoint, lonWaypoint) <10.0:
+                        print("You have reached waypoint 2! Head home")
+                        self.waypoint=3
+                elif self.wapoint == 3:
+                    print("Head home!")
+                else:
+                    pass
+
+                self.desiredBearing=desiredBearingIndic(lat,lon,latWaypoint,lonWaypoint)
+                print("Current heading & desired heading",self.currentBearing,self.desiredBearing)
+
                 self.altitude_warning(alt)
                 self.lat = lat
                 self.lon = lon
@@ -104,7 +139,9 @@ class Gpslogger():
                 self.lon_history.append(lon)
                 self.alt_history.append(alt)
                 print("Current altitude =",alt-self.alt0)
-                #self.updateGraphs()
+
+
+
 
 
 
@@ -135,6 +172,19 @@ class Gpslogger():
 
  # -------- Don't change anything below this line -----------
 
+    def distAtAlt(self,altitude,new_distance):
+        targetAlt = 30.0
+        toleranceAlt = 5.0
+        distance_goal = 500.0
+        if currentAlt < (targetAlt - toleranceAlt) or currentAlt > (targetAlt + toleranceAlt):
+            self.distance_alt = 0
+        else:
+            self.distance_alt += new_distance
+            if self.distance_alt > distance_goal:
+                print("You have been at altitude for long enough.")
+                self.waypoint = 1
+
+
     def distBetweenGPS(self,lat1,lon1,lat2,lon2):
         R = 6372.8 # Earth radius in kilometers
         dLat = radians(lat2 - lat1)
@@ -146,6 +196,27 @@ class Gpslogger():
         distance= R*c*1000
         return distance
 
+    def currentBearingIndic(lat1, lon1, lat2, lon2):
+      #dLat = radians(lat2 - lat1)
+      dLon = radians(lon2 - lon1)
+      lat1 = radians(lat1)
+      lat2 = radians(lat2)
+      bearing = atan2(sin(dLon)*cos(lat2), cos(lat1)*sin(lat2)-sin(lat1)*cos(lat2)*cos(dLon))
+      bearing = bearing*(180/3.1415)
+      currentBearing = (bearing + 360) % 360
+      return currentBearing
+
+    def desiredBearingIndic(lat, lon, latWaypoint, lonWaypoint): # inout current position (GPS) and the waypoint GPS
+
+      #dLat = radians(lat2waypoint - lat1)
+      dLon = radians(lonWaypoint - lon)
+      lat = radians(lat)
+      latWaypoint = radians(latWaypoint)
+      bearing = atan2(sin(dLon)*cos(latWaypoint), cos(lat)*sin(latWaypoint)-sin(lat)*cos(latWaypoint)*cos(dLon))
+      bearing = bearing*(180/3.1415)
+      desiredBearing = (bearing + 360) % 360
+
+      return desiredBearing
 
     def altitude_warning(self,alt):
         if alt - self.alt0 < 15.0:
