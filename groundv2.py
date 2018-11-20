@@ -74,6 +74,7 @@ def updateGraphs():
     global p1,p2,p3,p4, first_time
     global time_p, lat_p, lon_p, alt_p
     global time_now, lat_now, lon_now, alt_now
+    global dist_p, dist_now
     global altitude_marker
     if gps.initialized == True and gps.time != gps.time0:
         if first_time == True:
@@ -85,11 +86,13 @@ def updateGraphs():
             lat_now = gps.lat
             lon_now = gps.lon
             alt_now = gps.alt
+            dist_now = gps.distance
             p2.plot(x=[gps.lon0,lon_now],y=[gps.lat0,lat_now],pen=(0,0,255))
             time_p = time_now
             lon_p = lon_now
             lat_p = lat_now
             alt_p = alt_now
+            dist_p = dist_now
             first_time = False
         else:
             p1.removeItem(altitude_marker)
@@ -100,12 +103,14 @@ def updateGraphs():
             lat_now = gps.lat
             lon_now = gps.lon
             alt_now = gps.alt
+            dist_now = gps.distance
             p2.plot(x=[lon_p,lon_now],y=[lat_p,lat_now],pen=(0,0,255))
-            p3.plot(x=[time_p,time_now],y=[alt_p,alt_now],pen=(0,255,0))
+            p3.plot(x=[dist_p,dist_now],y=[alt_p,alt_now],pen=(0,255,0))
             time_p = time_now
             lon_p = lon_now
             lat_p = lat_now
             alt_p = alt_now
+            dist_p = dist_now
         l5.setText(alt_now)
 
     #p2.setData(gps.lat_history,gps.lon_history)
