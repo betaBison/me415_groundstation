@@ -3,6 +3,12 @@
 
 # JUST RUN THE groundv2.py file
 
+Replace the variable for port at the top of the groundv2.py file if necessary. Default is 'dev/ttyUSB0'
+
+
+
+
+
 
 
 
