@@ -177,7 +177,7 @@ class Gpslogger():
         toleranceAlt = 5.0
         distance_goal = 500.0
         if currentAlt < (targetAlt - toleranceAlt) or currentAlt > (targetAlt + toleranceAlt):
-            self.distance_alt = 0
+            self.distance_alt = 0.0
         else:
             self.distance_alt += new_distance
             if self.distance_alt > distance_goal:
