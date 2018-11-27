@@ -103,31 +103,31 @@ class Gpslogger():
                 self.initialized = True
 
             else:
-                self.currentBearing=currentBearingIndic(self.lat,self.lon,lat,lon)
-                new_distance = distBetweenGPS(self.lat,self.lon,lat,lon)
+                self.currentBearing=self.currentBearingIndic(self.lat,self.lon,lat,lon)
+                new_distance = self.distBetweenGPS(self.lat,self.lon,lat,lon)
                 self.distance += new_distance
 
                 if self.waypoint == 0:
-                    distAtAlt(alt,new_distance)
+                    self.distAtAlt(alt,new_distance)
                 if self.waypoint == 1:
                     latWaypoint=self.wp_lat[0]
                     lonWaypoint=self.wp_lon[0]
-                    if distBetweenGPS(lat,lon,latWaypoint,lonWaypoint) < 10.0:
+                    if self.distBetweenGPS(lat,lon,latWaypoint,lonWaypoint) < 10.0:
                         print("You have reached waypoint 1! Head to waypoint 2")
                         self.waypoint=2
                 elif self.waypoint == 2:
                     latWaypoint=self.wp_lat[1]
                     lonWaypoint=self.wp_lon[1]
-                    if distBetweenGPS(lat,lon, latWaypoint, lonWaypoint) <10.0:
+                    if self.distBetweenGPS(lat,lon, latWaypoint, lonWaypoint) <10.0:
                         print("You have reached waypoint 2! Head home")
                         self.waypoint=3
-                elif self.wapoint == 3:
+                elif self.waypoint == 3:
                     print("Head home!")
                 else:
                     pass
-
-                self.desiredBearing=desiredBearingIndic(lat,lon,latWaypoint,lonWaypoint)
-                print("Current heading & desired heading",self.currentBearing,self.desiredBearing)
+                if self.waypoint == 1 or self.waypoint == 2:
+                    self.desiredBearing=self.desiredBearingIndic(lat,lon,latWaypoint,lonWaypoint)
+                    print("Current heading & desired heading",self.currentBearing,self.desiredBearing)
 
                 self.altitude_warning(alt)
                 self.lat = lat
@@ -173,10 +173,10 @@ class Gpslogger():
  # -------- Don't change anything below this line -----------
 
     def distAtAlt(self,altitude,new_distance):
-        targetAlt = 30.0
-        toleranceAlt = 5.0
+        targetAlt = 10.0
+        toleranceAlt = 20.0
         distance_goal = 500.0
-        if currentAlt < (targetAlt - toleranceAlt) or currentAlt > (targetAlt + toleranceAlt):
+        if altitude < (targetAlt - toleranceAlt) or altitude > (targetAlt + toleranceAlt):
             self.distance_alt = 0.0
         else:
             self.distance_alt += new_distance
@@ -196,7 +196,7 @@ class Gpslogger():
         distance= R*c*1000
         return distance
 
-    def currentBearingIndic(lat1, lon1, lat2, lon2):
+    def currentBearingIndic(self,lat1, lon1, lat2, lon2):
       #dLat = radians(lat2 - lat1)
       dLon = radians(lon2 - lon1)
       lat1 = radians(lat1)
@@ -206,7 +206,7 @@ class Gpslogger():
       currentBearing = (bearing + 360) % 360
       return currentBearing
 
-    def desiredBearingIndic(lat, lon, latWaypoint, lonWaypoint): # inout current position (GPS) and the waypoint GPS
+    def desiredBearingIndic(self,lat, lon, latWaypoint, lonWaypoint): # inout current position (GPS) and the waypoint GPS
 
       #dLat = radians(lat2waypoint - lat1)
       dLon = radians(lonWaypoint - lon)
@@ -231,7 +231,7 @@ class Gpslogger():
         else:
             self.setAltWarn = 0
 
-    def distance(self, pt1, pt2):
+    def distance_between(self, pt1, pt2):
         """pt = [lat, long]"""
         EARTH_RADIUS = 6371000.0
         distN = EARTH_RADIUS*(pt2[0] - pt1[0])*pi/180.0
@@ -246,7 +246,7 @@ class Gpslogger():
         R = self.bdy_R
         theta = self.bdy_theta
 
-        dx, dy, _ = self.distance(center, pt)
+        dx, dy, _ = self.distance_between(center, pt)
         ct = np.cos(theta)
         st = np.sin(theta)
         ell = ((dx*ct + dy*st)/R[0])**2 + ((dx*st - dy*ct)/R[1])**2
