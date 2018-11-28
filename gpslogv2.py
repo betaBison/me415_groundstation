@@ -23,7 +23,7 @@ class Gpslogger():
 
     def stop(self):
         self.run = False
-        csvfile.close()
+        self.csvfile.close()
 
 
 # -------- Don't change anything above this line -----------
@@ -46,7 +46,7 @@ class Gpslogger():
         self.wp_start = [40.267641059243935, -111.63587333726502]
         self.wp_finish = [40.26678857, -111.63552403]
         self.wp_tolerance = 10.0  # m
-        self.init_pts = 15 # points that achieves a gps fix (suggest 100)
+        self.init_pts = 100 # points that achieves a gps fix (suggest 100)
 
         self.lat_init = np.zeros((self.init_pts))
         self.lon_init = np.zeros((self.init_pts))
@@ -108,7 +108,7 @@ class Gpslogger():
                 self.distance += new_distance
 
                 if self.waypoint == 0:
-                    self.distAtAlt(alt,new_distance)
+                    self.distAtAlt(self.alt,new_distance)
                 if self.waypoint == 1:
                     latWaypoint=self.wp_lat[0]
                     lonWaypoint=self.wp_lon[0]
@@ -138,28 +138,28 @@ class Gpslogger():
                 self.lat_history.append(lat)
                 self.lon_history.append(lon)
                 self.alt_history.append(alt)
-                print("Current altitude =",alt-self.alt0)
+                #print("Current altitude =",alt-self.alt0)
 
 
 
 
 
-
+            '''
             # ---- print GPS state -----
             if self.counter%10 == 0:  # reprint the titles every 10 iterations
                 print("time,fix,NumSat,lat,lon,alt,speed,ground_course,covariance")
 
             print(time,fix,NumSat,lat,lon,alt,speed,ground_course,covariance)
-
+            '''
 
             # ---- boundary checks ----
 
             ell = self.ellipse([lat, lon])
             if ell > 1.0:
-                print("ALERT!  Out of bounds! Return immediately!")
+                #print("ALERT!  Out of bounds! Return immediately!")
                 self.setBoundWarn = 1
             elif ell > 0.7:
-                print("WARNING!  Close to boundary! Ready pilot.")
+                #print("WARNING!  Close to boundary! Ready pilot.")
                 self.setBoundWarn = 2
             else:
                 self.setBoundWarn = 0
@@ -174,12 +174,15 @@ class Gpslogger():
 
     def distAtAlt(self,altitude,new_distance):
         targetAlt = 10.0
-        toleranceAlt = 20.0
-        distance_goal = 500.0
+        toleranceAlt = 120.0
+        distance_goal = 50.0
+        print("altitude = ",altitude)
         if altitude < (targetAlt - toleranceAlt) or altitude > (targetAlt + toleranceAlt):
             self.distance_alt = 0.0
         else:
             self.distance_alt += new_distance
+            print("running")
+            print(self.distance_alt)
             if self.distance_alt > distance_goal:
                 print("You have been at altitude for long enough.")
                 self.waypoint = 1
@@ -193,7 +196,7 @@ class Gpslogger():
         lat2 = radians(lat2)
         a = sin(dLat/2)**2 + cos(lat1)*cos(lat2)*sin(dLon/2)**2
         c = 2*asin(sqrt(a))
-        distance= R*c*1000
+        distance= R*c*1000.0
         return distance
 
     def currentBearingIndic(self,lat1, lon1, lat2, lon2):
@@ -269,8 +272,8 @@ class Gpslogger():
 
         # set filename and open csv file
         timestr = time.strftime("%Y%m%d-%H%M%S.csv")
-        csvfile = open(timestr, "w")
-        csvfile.write("time,fix,NumSat,latitude,longitude,altitude,speed,ground_course,covariance\n")
+        self.csvfile = open(timestr, "w")
+        self.csvfile.write("time,fix,NumSat,latitude,longitude,altitude,speed,ground_course,covariance\n")
 
         # set time to zero
         t0 = time.time()
@@ -283,14 +286,14 @@ class Gpslogger():
                     if out != False:
                         self.usrfun(*out)
                         if not (isnan(out[3]) or isnan(out[4]) or isnan(out[5])):
-                            csvfile.write(str(out[0])+","+str(out[1])+","+str(out[2])+","+ \
+                            self.csvfile.write(str(out[0])+","+str(out[1])+","+str(out[2])+","+ \
                                 str(out[3])+","+str(out[4])+","+str(out[5])+","+ \
                                 str(out[6])+","+str(out[7])+","+str(out[8])+"\n")
                 except ValueError as e:
                     warnings.warn("Value error, likely due to missing fields in the NMEA message. Error was: %s. Please report this issue at github.com/ros-drivers/nmea_navsat_driver, including a bag csvfile with the NMEA sentences that caused it." % e)
         except KeyboardInterrupt:
             GPS.close() #Close GPS serial port
-            csvfile.close() # Close CSV file
+            self.csvfile.close() # Close CSV file
 
 
 if __name__ == '__main__':
