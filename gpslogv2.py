@@ -173,9 +173,9 @@ class Gpslogger():
  # -------- Don't change anything below this line -----------
 
     def distAtAlt(self,altitude,new_distance):
-        targetAlt = 10.0
-        toleranceAlt = 120.0
-        distance_goal = 50.0
+        targetAlt = 30.0
+        toleranceAlt = 5.0
+        distance_goal = 500.0
         print("altitude = ",altitude)
         if altitude < (targetAlt - toleranceAlt) or altitude > (targetAlt + toleranceAlt):
             self.distance_alt = 0.0
