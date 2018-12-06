@@ -100,6 +100,7 @@ class Gpslogger():
                 self.alt = alt-self.alt0
                 self.time0 = time
                 self.time = time-self.time0
+                 self.initialized = True
 
             else:
                 self.currentBearing=self.currentBearingIndic(self.lat,self.lon,lat,lon)
