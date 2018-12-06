@@ -100,12 +100,12 @@ class Gpslogger():
                 self.alt = alt-self.alt0
                 self.time0 = time
                 self.time = time-self.time0
-                self.initialized = True
 
             else:
                 self.currentBearing=self.currentBearingIndic(self.lat,self.lon,lat,lon)
                 new_distance = self.distBetweenGPS(self.lat,self.lon,lat,lon)
                 self.distance += new_distance
+                print(self.distance)
 
                 if self.waypoint == 0:
                     self.distAtAlt(self.alt,new_distance)

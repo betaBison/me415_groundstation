@@ -121,7 +121,8 @@ def updateGraphs():
     #update3()
 
 def updateAltWarn(setAltWarn):
-    global l2
+    global l2, l5
+    l5.setText(gps.alt)
     if setAltWarn == 0:
         l2.setText("None")
     if setAltWarn == 1:
