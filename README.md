@@ -10,13 +10,13 @@ The script groundv2.py starts a thread running gpslog2.py that reads serial GPS 
 python3 groundv2.py
 ```
 # Variables to change
-Replace the 'port' variable at the top of the groundv2.py file if necessary. Default is 'dev/ttyUSB0'. See Appendix A to find your port (pulled from https://github.com/byuflowlab/415gps)
-Change 'self.init_pts' with how many points you want to average for your initial home position
+* Replace the 'port' variable at the top of the groundv2.py file if necessary. Default is 'dev/ttyUSB0'. See Appendix A to find your port (pulled from https://github.com/byuflowlab/415gps)
+* Change 'self.init_pts' with how many points you want to average for your initial home position
 
 
 # Troubleshooting
-File runs, but nothing prints to the command line: the transmitter and receiver are not connected
-Prints ("NO GPS FIX"): a gps fix has not yet been acquired
+* File runs, but nothing prints to the command line: the transmitter and receiver are not connected
+* Prints ("NO GPS FIX"): a gps fix has not yet been acquired
 
 
 # Appendix A: Knowing your part
