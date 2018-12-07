@@ -100,7 +100,7 @@ class Gpslogger():
                 self.alt = alt-self.alt0
                 self.time0 = time
                 self.time = time-self.time0
-                 self.initialized = True
+                self.initialized = True
 
             else:
                 self.currentBearing=self.currentBearingIndic(self.lat,self.lon,lat,lon)
@@ -179,7 +179,8 @@ class Gpslogger():
         distance_goal = 500.0
         print("altitude = ",altitude)
         if altitude < (targetAlt - toleranceAlt) or altitude > (targetAlt + toleranceAlt):
-            self.distance_alt = 0.0
+            pass
+            #self.distance_alt = 0.0
         else:
             self.distance_alt += new_distance
             print("running")
